@@ -2892,6 +2892,13 @@ $('msg').addEventListener('keydown',e=>{
     }
   }
 });
+// Whether the focused element does something of its own on Enter: a control,
+// a text field, or anything the user can tab to. The body, and an element that
+// only takes programmatic focus (tabindex="-1"), do not.
+const _ENTER_OWNER_SELECTOR='button,a[href],input,select,textarea,summary,[contenteditable]:not([contenteditable="false"]),[role="button"],[role="link"],[role="menuitem"],[role="menuitemradio"],[role="menuitemcheckbox"],[role="option"],[role="tab"],[tabindex]:not([tabindex="-1"])';
+function _focusOwnsEnter(el){
+  return !!(el&&typeof el.closest==='function'&&el.closest(_ENTER_OWNER_SELECTOR));
+}
 // B14: Cmd/Ctrl+K creates a new chat from anywhere
 document.addEventListener('keydown',async e=>{
   // Cmd/Ctrl+B toggles desktop sidebar collapse (VS Code convention).
@@ -2919,12 +2926,14 @@ document.addEventListener('keydown',async e=>{
     if(composer){e.preventDefault();composer.focus();}
     return;
   }
-  // Enter on approval card = Allow once (when a button inside the card is focused or
-  // card is visible and focus is not on an input/textarea/select)
+  // Enter while the approval card is visible = Allow once, but only when nothing
+  // else has the keyboard (#8130). A focused control keeps its own Enter: a
+  // button elsewhere on the page, and the card's own Deny / session / always
+  // buttons. The card focuses "Allow once" when it appears, so Enter then
+  // reaches that button and approves through its click.
   if(e.key==='Enter'&&!e.metaKey&&!e.ctrlKey&&!e.shiftKey){
     const card=$('approvalCard');
-    const tag=(document.activeElement||{}).tagName||'';
-    if(card&&card.classList.contains('visible')&&tag!=='TEXTAREA'&&tag!=='INPUT'&&tag!=='SELECT'){
+    if(card&&card.classList.contains('visible')&&!_focusOwnsEnter(document.activeElement)){
       e.preventDefault();
       if(typeof respondApproval==='function') respondApproval('once');
       return;

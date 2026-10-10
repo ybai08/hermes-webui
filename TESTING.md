@@ -190,6 +190,16 @@ a closed drawer (#8044). Run it locally with
 `python tests/browser_project_picker_keyboard.py`; add `--screenshots DIR` to
 write the open picker at 390x844, 820x1180, 844x390 and 1440x900.
 
+Then `tests/browser_approval_enter_scope.py`: with the approval card shown and
+every answer recorded instead of sent, Enter on a rail tab, a conversation's ⋮
+trigger, a ⋮ menu item and a "Move to project" row does what that control does
+and approves nothing; Enter on each of the card's buttons gives that button's
+answer; Enter with nothing focused, or right after the card appears, allows
+once; and one probe element per kind the rule names (a link, a summary, each
+ARIA role, something in the tab order) keeps its Enter, while an element that
+takes only programmatic focus does not (#8130). Run it locally with
+`python tests/browser_approval_enter_scope.py`.
+
 ## Public conversation lifecycle gate
 
 `tests/browser_conversation_lifecycle.py` adds a public deterministic
